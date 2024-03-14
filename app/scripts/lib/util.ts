@@ -3,6 +3,10 @@ import { AccessList } from '@ethereumjs/tx';
 import BN from 'bn.js';
 import { memoize } from 'lodash';
 import {
+  TransactionEnvelopeType,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
+import {
   ENVIRONMENT_TYPE_BACKGROUND,
   ENVIRONMENT_TYPE_FULLSCREEN,
   ENVIRONMENT_TYPE_NOTIFICATION,
@@ -14,10 +18,6 @@ import {
   PLATFORM_OPERA,
 } from '../../../shared/constants/app';
 import { CHAIN_IDS, TEST_CHAINS } from '../../../shared/constants/network';
-import {
-  TransactionEnvelopeType,
-  TransactionMeta,
-} from '../../../shared/constants/transaction';
 import { stripHexPrefix } from '../../../shared/modules/hexstring-utils';
 
 /**
@@ -180,11 +180,11 @@ export const isValidDate = (d: Date | number) => {
  * @property {() => void} reject - A function that rejects the Promise.
  */
 
-interface DeferredPromise {
+type DeferredPromise = {
   promise: Promise<any>;
   resolve?: () => void;
   reject?: () => void;
-}
+};
 
 /**
  * Create a defered Promise.
@@ -274,26 +274,26 @@ export function isWebUrl(urlString: string): boolean {
   );
 }
 
-interface FormattedTransactionMeta {
+type FormattedTransactionMeta = {
   blockHash: string | null;
   blockNumber: string | null;
   from: string;
-  to: string;
-  hash: string;
+  to?: string;
+  hash?: string;
   nonce: string;
   input: string;
   v?: string;
   r?: string;
   s?: string;
   value: string;
-  gas: string;
+  gas?: string;
   gasPrice?: string;
   maxFeePerGas?: string;
   maxPriorityFeePerGas?: string;
   type: TransactionEnvelopeType;
   accessList: AccessList | null;
   transactionIndex: string | null;
-}
+};
 
 export function formatTxMetaForRpcResult(
   txMeta: TransactionMeta,

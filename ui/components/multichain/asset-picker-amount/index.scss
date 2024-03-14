@@ -1,0 +1,17 @@
+.asset-picker-amount {
+  &__swap-button {
+    background: none;
+  }
+
+  &__input {
+    padding: 0 0 0 8px;
+    width: 100%;
+    border: none;
+  }
+}
+
+.erc1155-input {
+  border: 2px solid transparent;
+  min-height: 25px;
+  padding: 2;
+}

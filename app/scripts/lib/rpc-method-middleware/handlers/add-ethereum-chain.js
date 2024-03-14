@@ -20,10 +20,13 @@ const addEthereumChain = {
     getCurrentChainId: true,
     getCurrentRpcUrl: true,
     findNetworkConfigurationBy: true,
+    setNetworkClientIdForDomain: true,
     setActiveNetwork: true,
     requestUserApproval: true,
     startApprovalFlow: true,
     endApprovalFlow: true,
+    getProviderConfig: true,
+    hasPermissions: true,
   },
 };
 export default addEthereumChain;
@@ -38,10 +41,13 @@ async function addEthereumChainHandler(
     getCurrentChainId,
     getCurrentRpcUrl,
     findNetworkConfigurationBy,
+    setNetworkClientIdForDomain,
     setActiveNetwork,
     requestUserApproval,
     startApprovalFlow,
     endApprovalFlow,
+    getProviderConfig,
+    hasPermissions,
   },
 ) {
   if (!req.params?.[0] || typeof req.params[0] !== 'object') {
@@ -163,10 +169,8 @@ async function addEthereumChainHandler(
         origin,
         type: ApprovalType.SwitchEthereumChain,
         requestData: {
-          rpcUrl: existingNetwork.rpcUrl,
-          chainId: existingNetwork.chainId,
-          nickname: existingNetwork.nickname,
-          ticker: existingNetwork.ticker,
+          toNetworkConfiguration: existingNetwork,
+          fromNetworkConfiguration: getProviderConfig(),
         },
       });
 
@@ -284,13 +288,19 @@ async function addEthereumChainHandler(
       origin,
       type: ApprovalType.SwitchEthereumChain,
       requestData: {
-        rpcUrl: firstValidRPCUrl,
-        chainId: _chainId,
-        nickname: _chainName,
-        ticker,
-        networkConfigurationId,
+        toNetworkConfiguration: {
+          rpcUrl: firstValidRPCUrl,
+          chainId: _chainId,
+          nickname: _chainName,
+          ticker,
+          networkConfigurationId,
+        },
+        fromNetworkConfiguration: getProviderConfig(),
       },
     });
+    if (hasPermissions(req.origin)) {
+      setNetworkClientIdForDomain(req.origin, networkConfigurationId);
+    }
   } catch (error) {
     // For the purposes of this method, it does not matter if the user
     // declines to switch the selected network. However, other errors indicate

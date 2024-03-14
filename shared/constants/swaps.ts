@@ -26,7 +26,7 @@ export const MAX_ALLOWED_SLIPPAGE = 15;
 // in place of the token address that ERC-20 tokens have
 const DEFAULT_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000';
 
-export interface SwapsTokenObject {
+export type SwapsTokenObject = {
   /**
    * The symbol of token object
    */
@@ -47,7 +47,7 @@ export interface SwapsTokenObject {
    * URL for token icon
    */
   iconUrl: string;
-}
+};
 
 export const ETH_SWAPS_TOKEN_OBJECT: SwapsTokenObject = {
   symbol: CURRENCY_SYMBOLS.ETH,
@@ -97,6 +97,14 @@ export const GOERLI_SWAPS_TOKEN_OBJECT: SwapsTokenObject = {
   iconUrl: TEST_ETH_TOKEN_IMAGE_URL,
 } as const;
 
+export const SEPOLIA_SWAPS_TOKEN_OBJECT: SwapsTokenObject = {
+  symbol: CURRENCY_SYMBOLS.ETH,
+  name: 'Ether',
+  address: DEFAULT_TOKEN_ADDRESS,
+  decimals: 18,
+  iconUrl: TEST_ETH_TOKEN_IMAGE_URL,
+} as const;
+
 export const ARBITRUM_SWAPS_TOKEN_OBJECT: SwapsTokenObject = {
   ...ETH_SWAPS_TOKEN_OBJECT,
 } as const;
@@ -106,6 +114,10 @@ export const OPTIMISM_SWAPS_TOKEN_OBJECT: SwapsTokenObject = {
 } as const;
 
 export const ZKSYNC_ERA_SWAPS_TOKEN_OBJECT: SwapsTokenObject = {
+  ...ETH_SWAPS_TOKEN_OBJECT,
+} as const;
+
+export const LINEA_SWAPS_TOKEN_OBJECT: SwapsTokenObject = {
   ...ETH_SWAPS_TOKEN_OBJECT,
 } as const;
 
@@ -120,6 +132,7 @@ const POLYGON_CONTRACT_ADDRESS = '0x1a1ec25dc08e98e5e93f1104b5e5cdd298707d31';
 const AVALANCHE_CONTRACT_ADDRESS = '0x1a1ec25dc08e98e5e93f1104b5e5cdd298707d31';
 const OPTIMISM_CONTRACT_ADDRESS = '0x9dda6ef3d919c9bc8885d5560999a3640431e8e6';
 const ARBITRUM_CONTRACT_ADDRESS = '0x9dda6ef3d919c9bc8885d5560999a3640431e8e6';
+const LINEA_CONTRACT_ADDRESS = '0x9dda6ef3d919c9bc8885d5560999a3640431e8e6';
 const ZKSYNC_ERA_CONTRACT_ADDRESS =
   '0xf504c1fe13d14df615e66dcd0abf39e60c697f34';
 
@@ -139,12 +152,14 @@ export const WETH_ARBITRUM_CONTRACT_ADDRESS =
   '0x82af49447d8a07e3bd95bd0d56f35241523fbab1';
 export const WETH_ZKSYNC_ERA_CONTRACT_ADDRESS =
   '0x5AEa5775959fBC2557Cc8789bC1bf90A239D9a91';
+export const WETH_LINEA_CONTRACT_ADDRESS =
+  '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f';
 
 const SWAPS_TESTNET_CHAIN_ID = '0x539';
 
 export const SWAPS_API_V2_BASE_URL = 'https://swap.metaswap.codefi.network';
 export const SWAPS_DEV_API_V2_BASE_URL = 'https://swap.dev-api.cx.metamask.io';
-export const GAS_API_BASE_URL = 'https://gas-api.metaswap.codefi.network';
+export const GAS_API_BASE_URL = 'https://gas.api.cx.metamask.io';
 export const GAS_DEV_API_BASE_URL = 'https://gas.uat-api.cx.metamask.io';
 
 const BSC_DEFAULT_BLOCK_EXPLORER_URL = 'https://bscscan.com/';
@@ -155,6 +170,10 @@ const AVALANCHE_DEFAULT_BLOCK_EXPLORER_URL = 'https://snowtrace.io/';
 const OPTIMISM_DEFAULT_BLOCK_EXPLORER_URL = 'https://optimistic.etherscan.io/';
 const ARBITRUM_DEFAULT_BLOCK_EXPLORER_URL = 'https://arbiscan.io/';
 const ZKSYNC_DEFAULT_BLOCK_EXPLORER_URL = 'https://explorer.zksync.io/';
+const LINEA_DEFAULT_BLOCK_EXPLORER_URL = 'https://lineascan.build/';
+
+export const SMART_SWAPS_FAQ_AND_RISK_DISCLOSURES_URL =
+  'https://support.metamask.io/hc/articles/9184393821211';
 
 export const ALLOWED_PROD_SWAPS_CHAIN_IDS = [
   CHAIN_IDS.MAINNET,
@@ -165,6 +184,7 @@ export const ALLOWED_PROD_SWAPS_CHAIN_IDS = [
   CHAIN_IDS.OPTIMISM,
   CHAIN_IDS.ARBITRUM,
   CHAIN_IDS.ZKSYNC_ERA,
+  CHAIN_IDS.LINEA_MAINNET,
 ] as const;
 
 export const ALLOWED_DEV_SWAPS_CHAIN_IDS = [
@@ -187,6 +207,7 @@ export const SWAPS_CHAINID_CONTRACT_ADDRESS_MAP = {
   [CHAIN_IDS.OPTIMISM]: OPTIMISM_CONTRACT_ADDRESS,
   [CHAIN_IDS.ARBITRUM]: ARBITRUM_CONTRACT_ADDRESS,
   [CHAIN_IDS.ZKSYNC_ERA]: ZKSYNC_ERA_CONTRACT_ADDRESS,
+  [CHAIN_IDS.LINEA_MAINNET]: LINEA_CONTRACT_ADDRESS,
 } as const;
 
 export const SWAPS_WRAPPED_TOKENS_ADDRESSES = {
@@ -199,6 +220,7 @@ export const SWAPS_WRAPPED_TOKENS_ADDRESSES = {
   [CHAIN_IDS.OPTIMISM]: WETH_OPTIMISM_CONTRACT_ADDRESS,
   [CHAIN_IDS.ARBITRUM]: WETH_ARBITRUM_CONTRACT_ADDRESS,
   [CHAIN_IDS.ZKSYNC_ERA]: WETH_ZKSYNC_ERA_CONTRACT_ADDRESS,
+  [CHAIN_IDS.LINEA_MAINNET]: WETH_LINEA_CONTRACT_ADDRESS,
 } as const;
 
 export const ALLOWED_CONTRACT_ADDRESSES = {
@@ -238,6 +260,10 @@ export const ALLOWED_CONTRACT_ADDRESSES = {
     SWAPS_CHAINID_CONTRACT_ADDRESS_MAP[CHAIN_IDS.ZKSYNC_ERA],
     SWAPS_WRAPPED_TOKENS_ADDRESSES[CHAIN_IDS.ZKSYNC_ERA],
   ],
+  [CHAIN_IDS.LINEA_MAINNET]: [
+    SWAPS_CHAINID_CONTRACT_ADDRESS_MAP[CHAIN_IDS.LINEA_MAINNET],
+    SWAPS_WRAPPED_TOKENS_ADDRESSES[CHAIN_IDS.LINEA_MAINNET],
+  ],
 } as const;
 
 export const SWAPS_CHAINID_DEFAULT_TOKEN_MAP = {
@@ -246,10 +272,12 @@ export const SWAPS_CHAINID_DEFAULT_TOKEN_MAP = {
   [CHAIN_IDS.BSC]: BNB_SWAPS_TOKEN_OBJECT,
   [CHAIN_IDS.POLYGON]: MATIC_SWAPS_TOKEN_OBJECT,
   [CHAIN_IDS.GOERLI]: GOERLI_SWAPS_TOKEN_OBJECT,
+  [CHAIN_IDS.SEPOLIA]: GOERLI_SWAPS_TOKEN_OBJECT,
   [CHAIN_IDS.AVALANCHE]: AVAX_SWAPS_TOKEN_OBJECT,
   [CHAIN_IDS.OPTIMISM]: OPTIMISM_SWAPS_TOKEN_OBJECT,
   [CHAIN_IDS.ARBITRUM]: ARBITRUM_SWAPS_TOKEN_OBJECT,
   [CHAIN_IDS.ZKSYNC_ERA]: ZKSYNC_ERA_SWAPS_TOKEN_OBJECT,
+  [CHAIN_IDS.LINEA_MAINNET]: LINEA_SWAPS_TOKEN_OBJECT,
 } as const;
 
 export const SWAPS_CHAINID_DEFAULT_BLOCK_EXPLORER_URL_MAP = {
@@ -261,6 +289,7 @@ export const SWAPS_CHAINID_DEFAULT_BLOCK_EXPLORER_URL_MAP = {
   [CHAIN_IDS.OPTIMISM]: OPTIMISM_DEFAULT_BLOCK_EXPLORER_URL,
   [CHAIN_IDS.ARBITRUM]: ARBITRUM_DEFAULT_BLOCK_EXPLORER_URL,
   [CHAIN_IDS.ZKSYNC_ERA]: ZKSYNC_DEFAULT_BLOCK_EXPLORER_URL,
+  [CHAIN_IDS.LINEA_MAINNET]: LINEA_DEFAULT_BLOCK_EXPLORER_URL,
 } as const;
 
 export const ETHEREUM = 'ethereum';
@@ -271,6 +300,7 @@ export const AVALANCHE = 'avalanche';
 export const OPTIMISM = 'optimism';
 export const ARBITRUM = 'arbitrum';
 export const ZKSYNC_ERA = 'zksync';
+export const LINEA = 'linea';
 
 export const SWAPS_CLIENT_ID = 'extension';
 

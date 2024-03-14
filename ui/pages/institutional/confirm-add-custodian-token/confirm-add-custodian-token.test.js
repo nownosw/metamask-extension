@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import configureMockStore from 'redux-mock-store';
 import { renderWithProvider } from '../../../../test/lib/render-helpers';
 import ConfirmAddCustodianToken from './confirm-add-custodian-token';
@@ -36,7 +36,7 @@ describe('Confirm Add Custodian Token', () => {
             token: 'testToken',
             feature: 'custodian',
             service: 'Jupiter',
-            apiUrl: 'https://',
+            environment: 'jupiter',
             chainId: 1,
           },
         ],
@@ -72,7 +72,7 @@ describe('Confirm Add Custodian Token', () => {
               token: '',
               feature: 'custodian',
               service: 'Jupiter',
-              apiUrl: 'https://',
+              environment: 'jupiter',
               chainId: 1,
             },
           ],
@@ -113,5 +113,20 @@ describe('Confirm Add Custodian Token', () => {
     fireEvent.click(confirmButton);
 
     expect(screen.getByTestId('error-message')).toBeVisible();
+  });
+
+  it('clicks the cancel button and removes the connect request', async () => {
+    renderWithProvider(<ConfirmAddCustodianToken />, store);
+
+    const cancelButton = screen.getByTestId('cancel-btn');
+    fireEvent.click(cancelButton);
+
+    await waitFor(() => {
+      expect(mockedRemoveAddTokenConnectRequest).toHaveBeenCalledWith({
+        origin: 'origin',
+        environment: 'jupiter',
+        token: 'testToken',
+      });
+    });
   });
 });

@@ -6,7 +6,7 @@ import {
 } from '../../../shared/constants/hardware-wallets';
 import * as actionConstants from '../../store/actionConstants';
 
-interface AppState {
+type AppState = {
   shouldClose: boolean;
   menuOpen: boolean;
   modal: {
@@ -33,8 +33,13 @@ interface AppState {
     ignoreErc20Token?: boolean;
   };
   showIpfsModalOpen: boolean;
+  keyringRemovalSnapModal: {
+    snapName: string;
+    result: 'success' | 'failure' | 'none';
+  };
+  showKeyringRemovalSnapModal: boolean;
   importTokensModalOpen: boolean;
-  showSelectActionModal: boolean;
+  deprecatedNetworkModalOpen: boolean;
   accountDetail: {
     subview?: string;
     accountExport?: string;
@@ -45,7 +50,6 @@ interface AppState {
   scrollToBottom: boolean;
   warning: string | null | undefined;
   buyView: Record<string, any>;
-  isMouseUser: boolean;
   defaultHdPaths: {
     trezor: string;
     ledger: string;
@@ -72,18 +76,19 @@ interface AppState {
   selectedNetworkConfigurationId: string;
   sendInputCurrencySwitched: boolean;
   newTokensImported: string;
+  newTokensImportedError: string;
   onboardedInThisUISession: boolean;
   customTokenAmount: string;
-  txId: number | null;
+  txId: string | null;
   accountDetailsAddress: string;
-  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   snapsInstallPrivacyWarningShown: boolean;
-  ///: END:ONLY_INCLUDE_IN
-}
+  ///: END:ONLY_INCLUDE_IF
+};
 
-interface AppSliceState {
+type AppSliceState = {
   appState: AppState;
-}
+};
 
 // default state
 const initialState: AppState = {
@@ -105,8 +110,13 @@ const initialState: AppState = {
   networkDropdownOpen: false,
   importNftsModal: { open: false },
   showIpfsModalOpen: false,
+  keyringRemovalSnapModal: {
+    snapName: '',
+    result: 'none',
+  },
+  showKeyringRemovalSnapModal: false,
   importTokensModalOpen: false,
-  showSelectActionModal: false,
+  deprecatedNetworkModalOpen: false,
   accountDetail: {
     privateKey: '',
   },
@@ -116,7 +126,6 @@ const initialState: AppState = {
   // Used to display error text
   warning: null,
   buyView: {},
-  isMouseUser: false,
   defaultHdPaths: {
     trezor: `m/44'/60'/0'/0`,
     ledger: `m/44'/60'/0'/0/0`,
@@ -143,14 +152,15 @@ const initialState: AppState = {
   selectedNetworkConfigurationId: '',
   sendInputCurrencySwitched: false,
   newTokensImported: '',
+  newTokensImportedError: '',
   onboardedInThisUISession: false,
   customTokenAmount: '',
   scrollToBottom: true,
   txId: null,
   accountDetailsAddress: '',
-  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   snapsInstallPrivacyWarningShown: false,
-  ///: END:ONLY_INCLUDE_IN
+  ///: END:ONLY_INCLUDE_IF
 };
 
 export default function reduceApp(
@@ -217,16 +227,16 @@ export default function reduceApp(
         importTokensModalOpen: false,
       };
 
-    case actionConstants.SELECT_ACTION_MODAL_OPEN:
+    case actionConstants.DEPRECATED_NETWORK_POPOVER_OPEN:
       return {
         ...appState,
-        showSelectActionModal: true,
+        deprecatedNetworkModalOpen: true,
       };
 
-    case actionConstants.SELECT_ACTION_MODAL_CLOSE:
+    case actionConstants.DEPRECATED_NETWORK_POPOVER_CLOSE:
       return {
         ...appState,
-        showSelectActionModal: false,
+        deprecatedNetworkModalOpen: false,
       };
 
     // alert methods
@@ -408,12 +418,6 @@ export default function reduceApp(
         },
       };
 
-    case actionConstants.SET_MOUSE_USER_STATE:
-      return {
-        ...appState,
-        isMouseUser: action.payload,
-      };
-
     case actionConstants.SET_SELECTED_NETWORK_CONFIGURATION_ID:
       return {
         ...appState,
@@ -432,6 +436,12 @@ export default function reduceApp(
       return {
         ...appState,
         newTokensImported: action.payload,
+      };
+
+    case actionConstants.SET_NEW_TOKENS_IMPORTED_ERROR:
+      return {
+        ...appState,
+        newTokensImportedError: action.payload,
       };
 
     case actionConstants.SET_NEW_NFT_ADDED_MESSAGE:
@@ -505,6 +515,26 @@ export default function reduceApp(
         ...appState,
         customTokenAmount: action.payload,
       };
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    case actionConstants.SHOW_KEYRING_SNAP_REMOVAL_RESULT:
+      return {
+        ...appState,
+        showKeyringRemovalSnapModal: true,
+        keyringRemovalSnapModal: {
+          ...action.payload,
+        },
+      };
+    case actionConstants.HIDE_KEYRING_SNAP_REMOVAL_RESULT:
+      return {
+        ...appState,
+        showKeyringRemovalSnapModal: false,
+        keyringRemovalSnapModal: {
+          snapName: '',
+          result: 'none',
+        },
+      };
+    ///: END:ONLY_INCLUDE_IF
+
     default:
       return appState;
   }

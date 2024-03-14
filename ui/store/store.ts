@@ -3,9 +3,10 @@ import { configureStore as baseConfigureStore } from '@reduxjs/toolkit';
 import devtoolsEnhancer from 'remote-redux-devtools';
 import { ApprovalControllerState } from '@metamask/approval-controller';
 import { GasEstimateType, GasFeeEstimates } from '@metamask/gas-fee-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import { InternalAccount } from '@metamask/keyring-api';
 import rootReducer from '../ducks';
 import { LedgerTransportTypes } from '../../shared/constants/hardware-wallets';
-import { TransactionMeta } from '../../shared/constants/transaction';
 import type { NetworkStatus } from '../../shared/constants/network';
 
 /**
@@ -16,24 +17,24 @@ import type { NetworkStatus } from '../../shared/constants/network';
  *
  * TODO: Replace this
  */
-export interface TemporaryMessageDataType {
-  id: number;
+export type TemporaryMessageDataType = {
+  id: string;
   type: string;
   msgParams: {
-    metamaskId: number;
+    metamaskId: string;
     data: string;
   };
-  ///: BEGIN:ONLY_INCLUDE_IN(build-mmi)
+  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
   metadata?: {
     custodyId?: string;
   };
   status?: string;
-  ///: END:ONLY_INCLUDE_IN
-}
+  ///: END:ONLY_INCLUDE_IF
+};
 
-export interface MessagesIndexedById {
+export type MessagesIndexedById = {
   [id: string]: TemporaryMessageDataType;
-}
+};
 
 /**
  * This interface is a temporary interface to describe the state tree that is
@@ -44,7 +45,7 @@ export interface MessagesIndexedById {
  * state received from the background takes precedence over anything in the
  * metamask reducer.
  */
-interface TemporaryBackgroundState {
+type TemporaryBackgroundState = {
   addressBook: {
     [chainId: string]: {
       name: string;
@@ -65,7 +66,6 @@ interface TemporaryBackgroundState {
   unapprovedMsgs: MessagesIndexedById;
   unapprovedPersonalMsgs: MessagesIndexedById;
   unapprovedTypedMessages: MessagesIndexedById;
-  networkId: string | null;
   networksMetadata: {
     [NetworkClientId: string]: {
       EIPS: { [eip: string]: boolean };
@@ -80,10 +80,16 @@ interface TemporaryBackgroundState {
   };
   gasFeeEstimates: GasFeeEstimates;
   gasEstimateType: GasEstimateType;
-  ///: BEGIN:ONLY_INCLUDE_IN(build-mmi)
+  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
   custodyAccountDetails?: { [key: string]: any };
-  ///: END:ONLY_INCLUDE_IN
-}
+  ///: END:ONLY_INCLUDE_IF
+  internalAccounts: {
+    accounts: {
+      [key: string]: InternalAccount;
+    };
+    selectedAccount: string;
+  };
+};
 
 type RootReducerReturnType = ReturnType<typeof rootReducer>;
 

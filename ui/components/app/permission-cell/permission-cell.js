@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
-import Box from '../../ui/box';
 import {
   AlignItems,
   Color,
@@ -10,6 +9,10 @@ import {
   Size,
   TextColor,
   TextVariant,
+  Display,
+  BlockSize,
+  FlexWrap,
+  FlexDirection,
 } from '../../../helpers/constants/design-system';
 import {
   AvatarIcon,
@@ -18,6 +21,7 @@ import {
   IconName,
   IconSize,
   Text,
+  Box,
 } from '../../component-library';
 import { formatDate } from '../../../helpers/utils/util';
 import { useI18nContext } from '../../../hooks/useI18nContext';
@@ -34,19 +38,19 @@ const PermissionCell = ({
   dateApproved,
   revoked,
   showOptions,
+  hideStatus,
 }) => {
   const t = useI18nContext();
 
+  const infoIcon = IconName.Info;
   let infoIconColor = IconColor.iconMuted;
-  let infoIcon = IconName.Info;
   let iconColor = IconColor.primaryDefault;
   let iconBackgroundColor = Color.primaryMuted;
 
-  if (!revoked && weight === 1) {
+  if (!revoked && weight <= 2) {
     iconColor = IconColor.warningDefault;
     iconBackgroundColor = Color.warningMuted;
     infoIconColor = IconColor.warningDefault;
-    infoIcon = IconName.Danger;
   }
 
   if (dateApproved) {
@@ -67,14 +71,13 @@ const PermissionCell = ({
   return (
     <Box
       className="permission-cell"
+      display={Display.Flex}
       justifyContent={JustifyContent.center}
       alignItems={AlignItems.flexStart}
-      marginLeft={4}
-      marginRight={4}
       paddingTop={2}
       paddingBottom={2}
     >
-      <Box>
+      <Box display={Display.Flex}>
         {typeof permissionIcon === 'string' ? (
           <AvatarIcon
             iconName={permissionIcon}
@@ -89,7 +92,14 @@ const PermissionCell = ({
           permissionIcon
         )}
       </Box>
-      <Box width="full" marginLeft={4} marginRight={4}>
+      <Box
+        display={Display.Flex}
+        flexWrap={FlexWrap.Wrap}
+        flexDirection={FlexDirection.Column}
+        width={BlockSize.Full}
+        marginLeft={4}
+        marginRight={4}
+      >
         <Text
           size={Size.MD}
           variant={TextVariant.bodyMd}
@@ -99,19 +109,21 @@ const PermissionCell = ({
         >
           {title}
         </Text>
-        <Text
-          className="permission-cell__status"
-          variant={TextVariant.bodySm}
-          color={TextColor.textAlternative}
-        >
-          {!revoked &&
-            (dateApproved
-              ? t('approvedOn', [formatDate(dateApproved, 'yyyy-MM-dd')])
-              : t('permissionRequested'))}
-          {revoked ? t('permissionRevoked') : ''}
-        </Text>
+        {!hideStatus && (
+          <Text
+            className="permission-cell__status"
+            variant={TextVariant.bodySm}
+            color={TextColor.textAlternative}
+          >
+            {!revoked &&
+              (dateApproved
+                ? t('approvedOn', [formatDate(dateApproved, 'yyyy-MM-dd')])
+                : t('permissionRequested'))}
+            {revoked ? t('permissionRevoked') : ''}
+          </Text>
+        )}
       </Box>
-      <Box>
+      <Box display={Display.Flex}>
         {showOptions && snapId ? (
           <PermissionCellOptions
             snapId={snapId}
@@ -119,7 +131,17 @@ const PermissionCell = ({
             description={description}
           />
         ) : (
-          <Tooltip html={<div>{description}</div>} position="bottom">
+          <Tooltip
+            html={
+              <Text
+                variant={TextVariant.bodySm}
+                color={TextColor.textAlternative}
+              >
+                {description}
+              </Text>
+            }
+            position="bottom"
+          >
             <Icon color={infoIconColor} name={infoIcon} size={IconSize.Sm} />
           </Tooltip>
         )}
@@ -130,7 +152,8 @@ const PermissionCell = ({
 
 PermissionCell.propTypes = {
   snapId: PropTypes.string,
-  permissionName: PropTypes.string.isRequired,
+  permissionName: PropTypes.oneOfType([PropTypes.string, PropTypes.element])
+    .isRequired,
   title: PropTypes.oneOfType([
     PropTypes.string.isRequired,
     PropTypes.object.isRequired,
@@ -141,6 +164,7 @@ PermissionCell.propTypes = {
   dateApproved: PropTypes.number,
   revoked: PropTypes.bool,
   showOptions: PropTypes.bool,
+  hideStatus: PropTypes.bool,
 };
 
 export default PermissionCell;

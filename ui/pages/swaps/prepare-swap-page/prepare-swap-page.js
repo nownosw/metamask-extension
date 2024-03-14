@@ -22,9 +22,9 @@ import {
   JustifyContent,
   AlignItems,
   SEVERITIES,
-  Size,
   TextVariant,
   BLOCK_SIZES,
+  FontWeight,
 } from '../../../helpers/constants/design-system';
 import {
   fetchQuotesAndSetQuoteState,
@@ -65,12 +65,15 @@ import {
   getTokenList,
   isHardwareWallet,
   getHardwareWalletType,
+  getIsBridgeChain,
+  getMetaMetricsId,
 } from '../../../selectors';
 import {
   getValueFromWeiHex,
   hexToDecimal,
 } from '../../../../shared/modules/conversion.utils';
 import { getURLHostName } from '../../../helpers/utils/util';
+import { getPortfolioUrl } from '../../../helpers/utils/portfolio';
 import { usePrevious } from '../../../hooks/usePrevious';
 import { useTokenTracker } from '../../../hooks/useTokenTracker';
 import { useTokenFiatAmount } from '../../../hooks/useTokenFiatAmount';
@@ -109,7 +112,7 @@ import {
   formatSwapsValueForDisplay,
   getClassNameForCharLength,
 } from '../swaps.util';
-import { fetchTokenBalance } from '../../../../shared/lib/token-util.ts';
+import { fetchTokenBalance } from '../../../../shared/lib/token-util';
 import { isEqualCaseInsensitive } from '../../../../shared/modules/string-utils';
 import { calcTokenAmount } from '../../../../shared/lib/transactions-controller-utils';
 import { shouldEnableDirectWrapping } from '../../../../shared/lib/swaps-utils';
@@ -117,16 +120,17 @@ import {
   Icon,
   IconName,
   IconSize,
-  TextField,
   ButtonLink,
   ButtonLinkSize,
   Modal,
   ModalOverlay,
-  ModalContent,
-  ModalHeader,
   BannerAlert,
   Text,
+  TextField,
+  TextFieldSize,
 } from '../../../components/component-library';
+import { ModalContent } from '../../../components/component-library/modal-content/deprecated';
+import { ModalHeader } from '../../../components/component-library/modal-header/deprecated';
 import { SWAPS_NOTIFICATION_ROUTE } from '../../../helpers/constants/routes';
 import ImportToken from '../import-token';
 import TransactionSettings from '../transaction-settings/transaction-settings';
@@ -197,6 +201,8 @@ export default function PrepareSwapPage({
   const numberOfAggregators = aggregatorMetadata
     ? Object.keys(aggregatorMetadata).length
     : 0;
+  const isBridgeChain = useSelector(getIsBridgeChain);
+  const metaMetricsId = useSelector(getMetaMetricsId);
 
   const tokenConversionRates = useSelector(getTokenExchangeRates, isEqual);
   const conversionRate = useSelector(getConversionRate);
@@ -223,13 +229,15 @@ export default function PrepareSwapPage({
   const showSmartTransactionsOptInPopover =
     smartTransactionsEnabled && !smartTransactionsOptInPopoverDisplayed;
 
-  const onCloseSmartTransactionsOptInPopover = (e) => {
+  const onManageStxInSettings = (e) => {
     e?.preventDefault();
-    setSmartTransactionsOptInStatus(false, smartTransactionsOptInStatus);
+    setSmartTransactionsOptInStatus(true, smartTransactionsOptInStatus);
+    dispatch(setTransactionSettingsOpened(true));
   };
 
-  const onEnableSmartTransactionsClick = () =>
+  const onStartSwapping = () => {
     setSmartTransactionsOptInStatus(true, smartTransactionsOptInStatus);
+  };
 
   const fetchParamsFromToken = isSwapsDefaultTokenSymbol(
     sourceTokenInfo?.symbol,
@@ -238,7 +246,7 @@ export default function PrepareSwapPage({
     ? defaultSwapsToken
     : sourceTokenInfo;
 
-  const { tokensWithBalances } = useTokenTracker(tokens);
+  const { tokensWithBalances } = useTokenTracker({ tokens });
 
   // If the fromToken was set in a call to `onFromSelect` (see below), and that from token has a balance
   // but is not in tokensWithBalances or tokens, then we want to add it to the usersTokens array so that
@@ -569,7 +577,7 @@ export default function PrepareSwapPage({
     dispatch(resetSwapsPostFetchState());
     dispatch(setReviewSwapClickedTimestamp());
     trackPrepareSwapPageLoadedEvent();
-  }, [dispatch]);
+  }, [dispatch, trackPrepareSwapPageLoadedEvent]);
 
   const BlockExplorerLink = () => {
     return (
@@ -711,6 +719,11 @@ export default function PrepareSwapPage({
     !swapsErrorKey && !isReviewSwapButtonDisabled && !areQuotesPresent;
   const showNotEnoughTokenMessage =
     !fromTokenError && balanceError && fromTokenSymbol;
+  const showCrossChainSwapsLink =
+    isBridgeChain &&
+    !showReviewQuote &&
+    !showQuotesLoadingAnimation &&
+    !areQuotesPresent;
 
   const tokenVerifiedOn1Source = occurrences === 1;
 
@@ -865,10 +878,8 @@ export default function PrepareSwapPage({
         </Modal>
 
         <SmartTransactionsPopover
-          onEnableSmartTransactionsClick={onEnableSmartTransactionsClick}
-          onCloseSmartTransactionsOptInPopover={
-            onCloseSmartTransactionsOptInPopover
-          }
+          onStartSwapping={onStartSwapping}
+          onManageStxInSettings={onManageStxInSettings}
           isOpen={showSmartTransactionsOptInPopover}
         />
 
@@ -889,7 +900,7 @@ export default function PrepareSwapPage({
                 className={classnames('prepare-swap-page__from-token-amount', {
                   [fromTokenAmountClassName]: fromTokenAmountClassName,
                 })}
-                size={Size.SM}
+                size={TextFieldSize.Sm}
                 placeholder="0"
                 onChange={onTextFieldChange}
                 value={fromTokenInputValue}
@@ -1024,6 +1035,43 @@ export default function PrepareSwapPage({
             </div>
           </Box>
         </div>
+        {showCrossChainSwapsLink && (
+          <ButtonLink
+            endIconName={IconName.Export}
+            endIconProps={{
+              size: IconSize.Xs,
+            }}
+            variant={TextVariant.bodySm}
+            marginTop={2}
+            fontWeight={FontWeight.Normal}
+            onClick={() => {
+              const portfolioUrl = getPortfolioUrl(
+                'bridge',
+                'ext_bridge_button',
+                metaMetricsId,
+              );
+
+              global.platform.openTab({
+                url: `${portfolioUrl}&token=${fromTokenAddress}`,
+              });
+
+              trackEvent({
+                category: MetaMetricsEventCategory.Swaps,
+                event: MetaMetricsEventName.BridgeLinkClicked,
+                properties: {
+                  location: 'Swaps',
+                  text: 'Swap across networks with MetaMask Portfolio',
+                  chain_id: chainId,
+                  token_symbol: fromTokenSymbol,
+                },
+              });
+            }}
+            target="_blank"
+            data-testid="prepare-swap-page-cross-chain-swaps-link"
+          >
+            {t('crossChainSwapsLink')}
+          </ButtonLink>
+        )}
         {!showReviewQuote && toTokenIsNotDefault && occurrences < 2 && (
           <Box display={DISPLAY.FLEX} marginTop={2}>
             <BannerAlert

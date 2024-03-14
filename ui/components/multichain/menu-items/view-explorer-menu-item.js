@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { getAccountLink } from '@metamask/etherscan-link';
 
 import { MenuItem } from '../../ui/menu';
@@ -22,6 +21,7 @@ import {
 } from '../../../selectors';
 import { getURLHostName } from '../../../helpers/utils/util';
 import { NETWORKS_ROUTE } from '../../../helpers/constants/routes';
+import { toChecksumHexAddress } from '../../../../shared/modules/hexstring-utils';
 
 export const ViewExplorerMenuItem = ({
   metricsLocation,
@@ -95,8 +95,20 @@ export const ViewExplorerMenuItem = ({
 };
 
 ViewExplorerMenuItem.propTypes = {
+  /**
+   * Represents the "location" property of the metrics event
+   */
   metricsLocation: PropTypes.string.isRequired,
+  /**
+   * Closes the menu
+   */
   closeMenu: PropTypes.func,
-  textProps: PropTypes.object,
+  /**
+   * Address to show account details for
+   */
   address: PropTypes.string.isRequired,
+  /**
+   * Custom properties for the menu item text
+   */
+  textProps: PropTypes.object,
 };

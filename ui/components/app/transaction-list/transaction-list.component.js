@@ -1,18 +1,18 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
+import { TransactionType } from '@metamask/transaction-controller';
 import {
   nonceSortedCompletedTransactionsSelector,
   nonceSortedPendingTransactionsSelector,
 } from '../../../selectors/transactions';
-import { getCurrentChainId, getSelectedAddress } from '../../../selectors';
+import { getCurrentChainId, getSelectedAccount } from '../../../selectors';
 import { useI18nContext } from '../../../hooks/useI18nContext';
 import TransactionListItem from '../transaction-list-item';
 import SmartTransactionListItem from '../transaction-list-item/smart-transaction-list-item.component';
 import Button from '../../ui/button';
 import { TOKEN_CATEGORY_HASH } from '../../../helpers/constants/transactions';
 import { SWAPS_CHAINID_CONTRACT_ADDRESS_MAP } from '../../../../shared/constants/swaps';
-import { TransactionType } from '../../../../shared/constants/transaction';
 import { isEqualCaseInsensitive } from '../../../../shared/modules/string-utils';
 import { Box, Text } from '../../component-library';
 import {
@@ -102,6 +102,7 @@ const groupTransactionsByDate = (transactionGroups) => {
 export default function TransactionList({
   hideTokenTransactions,
   tokenAddress,
+  boxProps,
 }) {
   const [limit, setLimit] = useState(PAGE_INCREMENT);
   const t = useI18nContext();
@@ -113,7 +114,7 @@ export default function TransactionList({
     nonceSortedCompletedTransactionsSelector,
   );
   const chainId = useSelector(getCurrentChainId);
-  const selectedAddress = useSelector(getSelectedAddress);
+  const { address: selectedAddress } = useSelector(getSelectedAccount);
   const renderDateStamp = (index, dateGroup) => {
     return index === 0 ? (
       <Text
@@ -205,7 +206,7 @@ export default function TransactionList({
     dateGroup.transactionGroups.length > 0;
 
   return (
-    <Box className="transaction-list" paddingTop={4}>
+    <Box className="transaction-list" {...boxProps}>
       <Box className="transaction-list__transactions">
         {pendingTransactions.length > 0 && (
           <Box className="transaction-list__pending-transactions">
@@ -217,26 +218,24 @@ export default function TransactionList({
                     TransactionType.smart
                   ) {
                     return (
-                      <>
+                      <Fragment key={`${transactionGroup.nonce}:${index}`}>
                         {renderDateStamp(index, dateGroup)}
                         <SmartTransactionListItem
                           isEarliestNonce={index === 0}
                           smartTransaction={transactionGroup.initialTransaction}
                           transactionGroup={transactionGroup}
-                          key={`${transactionGroup.nonce}:${index}`}
                         />
-                      </>
+                      </Fragment>
                     );
                   }
                   return (
-                    <>
+                    <Fragment key={`${transactionGroup.nonce}:${index}`}>
                       {renderDateStamp(index, dateGroup)}
                       <TransactionListItem
                         isEarliestNonce={index === 0}
                         transactionGroup={transactionGroup}
-                        key={`${transactionGroup.nonce}:${index}`}
                       />
-                    </>
+                    </Fragment>
                   );
                 },
               );
@@ -254,7 +253,13 @@ export default function TransactionList({
                 return dateGroup.transactionGroups.map(
                   (transactionGroup, index) => {
                     return (
-                      <>
+                      <Fragment
+                        key={`${transactionGroup.nonce}:${
+                          transactionGroup.initialTransaction
+                            ? index
+                            : limit + index - 10
+                        }`}
+                      >
                         {renderDateStamp(index, dateGroup)}
                         {transactionGroup.initialTransaction
                           ?.transactionType === TransactionType.smart ? (
@@ -263,17 +268,13 @@ export default function TransactionList({
                             smartTransaction={
                               transactionGroup.initialTransaction
                             }
-                            key={`${transactionGroup.nonce}:${index}`}
                           />
                         ) : (
                           <TransactionListItem
                             transactionGroup={transactionGroup}
-                            key={`${transactionGroup.nonce}:${
-                              limit + index - 10
-                            }`}
                           />
                         )}
-                      </>
+                      </Fragment>
                     );
                   },
                 );
@@ -303,9 +304,11 @@ export default function TransactionList({
 TransactionList.propTypes = {
   hideTokenTransactions: PropTypes.bool,
   tokenAddress: PropTypes.string,
+  boxProps: PropTypes.object,
 };
 
 TransactionList.defaultProps = {
   hideTokenTransactions: false,
   tokenAddress: undefined,
+  boxProps: undefined,
 };
